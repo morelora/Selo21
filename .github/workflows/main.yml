@@ -1,0 +1,35 @@
+name: Android APK Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract ZIP
+        run: unzip *.zip # Yüklediğin tüm ZIP dosyalarını açar
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          # Eğer gradlew dosyası bir alt klasördeyse onu bulup yetki verir
+          find . -name "gradlew" -exec chmod +x {} +
+
+      - name: Build with Gradle
+        run: |
+          # gradlew dosyasının olduğu klasöre gidip derlemeyi başlatır
+          GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+          cd $(dirname $GRADLEW_PATH)
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: HanGest-Uygulamam
+          path: "**/build/outputs/apk/debug/*.apk"
